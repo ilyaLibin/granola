@@ -1,7 +1,2 @@
-import enforce from './enforce';
-import ensure from './ensure';
-
-enforce.ensure = ensure;
-enforce.Ensure = ensure.Ensure;
-
+const enforce = 3;
 export default enforce;

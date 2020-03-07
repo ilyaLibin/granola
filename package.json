@@ -1,8 +1,8 @@
 {
-  "name": "n4s",
-  "version": "0.4.4",
-  "description": "Enforce - Validation assertions library",
-  "main": "dist/n4s.min.js",
+  "name": "engage",
+  "version": "0.0.1",
+  "description": "Engage - user analytics library",
+  "main": "dist/engage.min.js",
   "scripts": {
     "test": "jest",
     "lint": "eslint",
@@ -11,23 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ealush/n4s.git"
+    "url": "git+https://github.com/ilyaLibin/engage.git"
   },
   "keywords": [
-    "assertion",
-    "enforce",
-    "ensure",
-    "passable",
-    "vest",
-    "n4s",
-    "validations"
+    "assertion"
   ],
-  "author": "ealush",
+  "author": "Ilya Libin",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/ealush/n4s/issues"
-  },
-  "homepage": "https://github.com/ealush/n4s#readme",
+  "homepage": "https://github.com/ilyaLibin/engage#readme",
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
