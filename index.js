@@ -1,10 +1,12 @@
 import utm from '@segment/utm-params';
 const queryString = document.location.search;
 class Granola {
-  static campaign() {
+  static init() {
+    // TODO add params persistance.
+  }
+
+  static initCampaign() {
     const search = utm.strict(queryString);
-    console.log(queryString);
-    console.log(search)
     if (Object.keys(search).length) {
       analytics.identify({
         utm: utm(queryString)
@@ -12,7 +14,27 @@ class Granola {
     }
     return search;
   }
-}
 
+  static trackForm($form, event) {
+    const params = {
+      ...Granola.formToJSON($form),
+      utm: utm(queryString)
+    }
+    analytics.trackForm($form, event, );
+  }
+
+  static formToJSON($form) {
+    const { elements } = $form;
+    const json = [].reduce.call(elements, (data, element) => {
+      data[element.name] = element.value;
+      return data;
+    }, {});
+    return json;
+  }
+
+  static persistCampaignParams() {
+
+  }
+}
 
 window.Granola = Granola;
