@@ -9,7 +9,7 @@
     "@segment/utm-params": "^2.0.0"
   },
   "scripts": {
-    "build": "parcel build -o granola",
+    "build": "parcel build index.js -o granola",
     "start": "parcel index.html"
   }
 }
