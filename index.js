@@ -3,6 +3,7 @@ const queryString = document.location.search;
 class Granola {
   static init() {
     // TODO add params persistance.
+    console.log('version test')
   }
 
   static initCampaign() {
