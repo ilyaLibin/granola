@@ -17,7 +17,6 @@ jobs:
         with:
           node-version: 10.x
       - run: npm install
-      - run npm install -g parc
       - name: Build files
         run: npx parcel build index.js -o granola
       - name: S3 Sync
