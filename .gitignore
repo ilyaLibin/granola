@@ -8,6 +8,7 @@ yarn-error.log*
 # Dependency directories
 node_modules/
 dist/
+.cache/
 # Optional npm cache directory
 .npm
 

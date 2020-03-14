@@ -1,4 +1,6 @@
 import utm from '@segment/utm-params';
+import storage from './src/Storage';
+storage();
 const queryString = document.location.search;
 class Granola {
   static init() {
