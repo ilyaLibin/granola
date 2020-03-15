@@ -1,29 +1,50 @@
 import utm from '@segment/utm-params';
 import storage from './src/Storage';
+import { uuid } from 'uuidv4';
 storage();
-const queryString = document.location.search;
+
+const SESSION_KEY = 'exactius_session';
+
 class Granola {
-  static init() {
-    // TODO add params persistance.
-    console.log('version test')
+  constructor() {
+    this.queryString = document.location.search;
+    this.sessionId = sessionStorage.getItem(SESSION_KEY) || uuid();
+    this.search = utm.strict(this.queryString);
+    this.queryParams = utm(this.queryString);
+
+    sessionStorage.setItem(SESSION_KEY, this.sessionId);
   }
 
-  static initCampaign() {
-    const search = utm.strict(queryString);
-    if (Object.keys(search).length) {
+  initCampaign() {
+    if (Object.keys(this.search).length) {
       analytics.identify({
-        utm: utm(queryString)
+        utm: this.queryParams
       })
     }
-    return search;
+
+    return this.search;
   }
 
-  static trackForm($form, event) {
+  trackForm($form, event) {
     const params = {
       ...Granola.formToJSON($form),
-      utm: utm(queryString)
+      ...this.attributes()
     }
-    analytics.trackForm($form, event, );
+    analytics.trackForm($form, event, params);
+  }
+
+  trackLink($element, eventName, params = {}) {
+    analytics.trackLink($element, eventName, {
+      ...this.attributes(),
+      ...params
+    });
+  }
+
+  attributes() {
+    return {
+      utm: this.queryParams,
+      sessionId: this.sessionId
+    }
   }
 
   static formToJSON($form) {

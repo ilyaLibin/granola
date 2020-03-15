@@ -1,12 +1,13 @@
 {
   "name": "granola",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "repository": "git@github.com:ilyaLibin/granola.git",
   "author": "Ilya Libin <libin.ilya@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@segment/utm-params": "^2.0.0"
+    "@segment/utm-params": "^2.0.0",
+    "uuidv4": "^6.0.6"
   },
   "scripts": {
     "build": "parcel build index.js -o granola",
