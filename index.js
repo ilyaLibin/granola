@@ -3,8 +3,8 @@ import storage from './src/Storage';
 import { uuid } from 'uuidv4';
 storage();
 
-const SESSION_KEY = 'exactius_session';
-
+const SESSION_KEY = 'granola_session';
+const DEBUG_SRC = 'granola-debug-script';
 class Granola {
   constructor() {
     this.queryString = document.location.search;
@@ -25,12 +25,23 @@ class Granola {
     return this.search;
   }
 
-  trackForm($form, event) {
+  trackForm($form, event, extraParams) {
     const params = {
       ...Granola.formToJSON($form),
-      ...this.attributes()
+      ...this.attributes(),
+      ...extraParams,
     }
     analytics.trackForm($form, event, params);
+  }
+
+  trackLinkBySelector(selector, eventTitle, params = {}) {
+    const $elements = document.querySelectorAll(selector);
+    $elements.forEach(a => granola.trackLink(a, eventTitle, {
+      text: a.innerText,
+      class: a.classList,
+      ...this.attributes(),
+      ...params
+    }))
   }
 
   trackLink($element, eventName, params = {}) {
@@ -56,8 +67,14 @@ class Granola {
     return json;
   }
 
-  static persistCampaignParams() {
+  static debugOn(src) {
+    if (!scr) throw new Error('full url for local script is missing');
+    localStorage.setItem(DEBUG_SRC, src);
+    window.location.reload();
+  }
 
+  static debugOff() {
+    localStorage.removeItem(DEBUG_SRC);
   }
 }
 

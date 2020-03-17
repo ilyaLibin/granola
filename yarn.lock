@@ -58,3 +58,8 @@ uuidv4@^6.0.6:
   integrity sha512-10YcruyGJtsG5SJnPG+8atr8toJa7xAOrcO7B7plYYiwpH1mQ8UZHjNSa2MrwGi6KWuyVrXGHr+Rce22F9UAiw==
   dependencies:
     uuid "7.0.2"
+
+vent-dom@0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/vent-dom/-/vent-dom-0.0.6.tgz#450ecb67f663366cc37e35cb204ab8b6f62af338"
+  integrity sha512-zomqdpYnUgyLtfERNgDGY69JlN9+Y9CqeOkHairMctg6xN8s3Dly+06exbbtkW8sfQCkq7xQ2DKhFQfjoMepOw==
