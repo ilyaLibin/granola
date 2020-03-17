@@ -38,3 +38,13 @@
 
 <!-- granola.trackForm(document.querySelector('.lp-pom-form > form'), 'appointment scheduled') -->
 <!-- a[href="/scheduler/ -->
+
+<!-- circa specific -->
+<script type="text/javascript">
+  var APPOINTMENT_SCHEDULED = 'Appointment Scheduled';
+  var INITIATED_CONVERSION = 'Initiated Conversion';
+  granola.trackForm(document.querySelector('.lp-pom-form > form'), APPOINTMENT_SCHEDULED, { status: 'not_confirmed' });
+  granola.trackForm(document.querySelector('#appointment-form'), APPOINTMENT_SCHEDULED, { status: 'not_confirmed' });
+  granola.trackLinkBySelector('a[href="/scheduler/', INITIATED_CONVERSION, { category: 'interest' });
+  granola.trackLinkBySelector('.cta', INITIATED_CONVERSION, { category: 'interest' });
+</script>

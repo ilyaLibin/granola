@@ -26,6 +26,7 @@ class Granola {
   }
 
   trackForm($form, event, extraParams) {
+    if (!$form) return;
     const params = {
       ...Granola.formToJSON($form),
       ...this.attributes(),
@@ -59,6 +60,7 @@ class Granola {
   }
 
   static formToJSON($form) {
+    if (!$form) return {};
     const { elements } = $form;
     const json = [].reduce.call(elements, (data, element) => {
       data[element.name] = element.value;
