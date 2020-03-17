@@ -39,7 +39,7 @@ class Granola {
     const $elements = document.querySelectorAll(selector);
     $elements.forEach(a => granola.trackLink(a, eventTitle, {
       text: a.innerText,
-      class: a.classList,
+      class: a.className,
       ...this.attributes(),
       ...params
     }))
@@ -50,6 +50,23 @@ class Granola {
       ...this.attributes(),
       ...params
     });
+  }
+
+  track(eventName, params = {}) {
+    analytics.track(eventName, {
+      ...this.attributes(),
+      ...params
+    });
+  }
+
+  formSubmit(eventName, params = {}) {
+    analytics.track(eventName, {
+      ...this.attributes(),
+      ...params
+    })
+    analytics.identify({
+      ...this.attributes()
+    })
   }
 
   attributes() {
@@ -70,7 +87,7 @@ class Granola {
   }
 
   static debugOn(src) {
-    if (!scr) throw new Error('full url for local script is missing');
+    if (!src) throw new Error('full url for local script is missing');
     localStorage.setItem(DEBUG_SRC, src);
     window.location.reload();
   }
