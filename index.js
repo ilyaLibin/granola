@@ -1,17 +1,19 @@
 import utm from '@segment/utm-params';
 import storage from './src/Storage';
 import { uuid } from 'uuidv4';
-storage();
+import vent from 'vent-dom';
 
+storage();
 const SESSION_KEY = 'granola_session';
 const DEBUG_SRC = 'granola-debug-script';
 class Granola {
   constructor() {
+    console.log('debug debug di')
     this.queryString = document.location.search;
     this.sessionId = sessionStorage.getItem(SESSION_KEY) || uuid();
     this.search = utm.strict(this.queryString);
     this.queryParams = utm(this.queryString);
-
+    this.vent
     sessionStorage.setItem(SESSION_KEY, this.sessionId);
   }
 
@@ -27,6 +29,7 @@ class Granola {
 
   trackForm($form, event, extraParams) {
     if (!$form) return;
+    console.log('here is my form')
     const params = {
       ...Granola.formToJSON($form),
       ...this.attributes(),
@@ -37,12 +40,15 @@ class Granola {
 
   trackLinkBySelector(selector, eventTitle, params = {}) {
     const $elements = document.querySelectorAll(selector);
-    $elements.forEach(a => granola.trackLink(a, eventTitle, {
-      text: a.innerText,
-      class: a.className,
-      ...this.attributes(),
-      ...params
-    }))
+    $elements.forEach(a => {
+      console.log('debug', a)
+      granola.trackLink(a, eventTitle, {
+        text: a.innerText,
+        class: a.className,
+        ...this.attributes(),
+        ...params
+      })
+    })
   }
 
   trackLink($element, eventName, params = {}) {
@@ -65,7 +71,8 @@ class Granola {
       ...params
     })
     analytics.identify({
-      ...this.attributes()
+      ...this.attributes(),
+      ...params
     })
   }
 

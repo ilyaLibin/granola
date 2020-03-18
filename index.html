@@ -45,6 +45,6 @@
   var INITIATED_CONVERSION = 'Initiated Conversion';
   granola.trackForm(document.querySelector('.lp-pom-form > form'), APPOINTMENT_SCHEDULED, { status: 'not_confirmed' });
   granola.trackForm(document.querySelector('#appointment-form'), APPOINTMENT_SCHEDULED, { status: 'not_confirmed' });
-  granola.trackLinkBySelector('a[href="/scheduler/', INITIATED_CONVERSION, { category: 'interest' });
+  granola.trackLinkBySelector('a[href="/scheduler/"', INITIATED_CONVERSION, { category: 'interest' });
   granola.trackLinkBySelector('.cta', INITIATED_CONVERSION, { category: 'interest' });
 </script>
