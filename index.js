@@ -1,35 +1,39 @@
 import utm from '@segment/utm-params';
 import storage from './src/Storage';
-import { uuid } from 'uuidv4';
-import vent from 'vent-dom';
+import uuid from 'lil-uuid';
+import * as vent from 'vent-dom';
 
 storage();
 const SESSION_KEY = 'granola_session';
 const DEBUG_SRC = 'granola-debug-script';
 class Granola {
   constructor() {
-    console.log('debug debug di')
     this.queryString = document.location.search;
+    this.clientId = (ga && ga.getAll()[0] && ga.getAll()[0].get('clientId')) || 'not-set';
     this.sessionId = sessionStorage.getItem(SESSION_KEY) || uuid();
-    this.search = utm.strict(this.queryString);
-    this.queryParams = utm(this.queryString);
-    this.vent
+    this.search = utm.strict(document.location.search);
+    this.queryParams = utm(document.location.search);
     sessionStorage.setItem(SESSION_KEY, this.sessionId);
   }
 
   initCampaign() {
+    console.log('granola called')
+    console.log('granola', this.search);
+    console.log('granola', Object.keys(this.search).length)
     if (Object.keys(this.search).length) {
+      console.log('granola', 'identify called')
       analytics.identify({
-        utm: this.queryParams
+        utm: this.queryParams,
+        gtmClientId: this.clientId
       })
     }
 
     return this.search;
   }
 
+  // track form submission by selector - it fetch the form data automatically
   trackForm($form, event, extraParams) {
     if (!$form) return;
-    console.log('here is my form')
     const params = {
       ...Granola.formToJSON($form),
       ...this.attributes(),
@@ -38,10 +42,40 @@ class Granola {
     analytics.trackForm($form, event, params);
   }
 
+  // track clicks globally same as an old tracking service.
+  // const targets = {
+  //   '.submit-forms-nopay': {
+  //     title: 'Appointment Scheduled',
+  //     params: { status: 'not-confirmed' },
+  //     isFormSubmit: true,
+  //     formSelector: 'form'
+  //   }
+  // }
+  trackClicks(targets = {}, selector = 'body') {
+    const that = this;
+    document.querySelector(selector).addEventListener('click', (e) => {
+      const selectors = Object.keys(targets);
+      selectors.forEach(s => {
+        if (e.target && e.target.matches(s)) {
+          const event = targets[s];
+          if (event.isFormSubmit) {
+            const params = {
+              ...event.params,
+              ...Granola.formToJSON(e.target.closest(event.formSelector))
+            }
+            that.formSubmit(event.title, params)
+          } else {
+            that.track(event.title, event.params);
+          }
+        }
+      })
+    });
+  }
+
+  // set link tracking by selector - not sure if needed as it not declarative.
   trackLinkBySelector(selector, eventTitle, params = {}) {
     const $elements = document.querySelectorAll(selector);
     $elements.forEach(a => {
-      console.log('debug', a)
       granola.trackLink(a, eventTitle, {
         text: a.innerText,
         class: a.className,
@@ -51,6 +85,7 @@ class Granola {
     })
   }
 
+  // enrich analytics native method with some attributes
   trackLink($element, eventName, params = {}) {
     analytics.trackLink($element, eventName, {
       ...this.attributes(),
@@ -79,7 +114,8 @@ class Granola {
   attributes() {
     return {
       utm: this.queryParams,
-      sessionId: this.sessionId
+      sessionId: this.sessionId,
+      gtmClientId: this.clientId
     }
   }
 
@@ -105,3 +141,4 @@ class Granola {
 }
 
 window.Granola = Granola;
+
