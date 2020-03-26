@@ -1,7 +1,6 @@
 import utm from '@segment/utm-params';
 import storage from './src/Storage';
 import uuid from 'lil-uuid';
-import * as vent from 'vent-dom';
 
 storage();
 const SESSION_KEY = 'granola_session';
@@ -9,7 +8,7 @@ const DEBUG_SRC = 'granola-debug-script';
 class Granola {
   constructor() {
     this.queryString = document.location.search;
-    this.clientId = (ga && ga.getAll()[0] && ga.getAll()[0].get('clientId')) || 'not-set';
+    this.clientId = (window.ga && ga.getAll()[0] && ga.getAll()[0].get('clientId')) || 'not-set';
     this.sessionId = sessionStorage.getItem(SESSION_KEY) || uuid();
     this.search = utm.strict(document.location.search);
     this.queryParams = utm(document.location.search);
@@ -17,11 +16,7 @@ class Granola {
   }
 
   initCampaign() {
-    console.log('granola called')
-    console.log('granola', this.search);
-    console.log('granola', Object.keys(this.search).length)
     if (Object.keys(this.search).length) {
-      console.log('granola', 'identify called')
       analytics.identify({
         utm: this.queryParams,
         gtmClientId: this.clientId
@@ -141,4 +136,3 @@ class Granola {
 }
 
 window.Granola = Granola;
-
