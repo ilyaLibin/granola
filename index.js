@@ -22,6 +22,7 @@ class Granola {
   initCampaign() {
     if (Object.keys(this.search).length) {
       analytics.identify({
+        interaction: 'landing-page-hit',
         utm: this.queryParams,
         gtmClientId: this.clientId
       })
