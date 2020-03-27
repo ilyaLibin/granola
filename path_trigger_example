@@ -1,0 +1,15 @@
+
+;(function() {
+  var path = document.location.pathname;
+  switch (path) {
+    case (path.match(/review/) || {}).input:
+      var formParams = JSON.parse(localStorage.getItem('attr_user_traits') || '{}');
+      if (!!formParams.email) {
+        var params = Object.assign({}, formParams, granola.attributes());
+        analytics.identify(params);
+      }
+      break;
+    default:
+      break;
+  }
+})();

@@ -8,7 +8,11 @@ const DEBUG_SRC = 'granola-debug-script';
 class Granola {
   constructor() {
     this.queryString = document.location.search;
-    this.clientId = (window.ga && ga.getAll()[0] && ga.getAll()[0].get('clientId')) || 'not-set';
+    this.clientId = (
+      window.ga &&
+      ga.getAll &&
+      ga.getAll()[0] &&
+      ga.getAll()[0].get('clientId')) || 'not-set';
     this.sessionId = sessionStorage.getItem(SESSION_KEY) || uuid();
     this.search = utm.strict(document.location.search);
     this.queryParams = utm(document.location.search);
