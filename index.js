@@ -20,7 +20,7 @@ class Granola {
   }
 
   initCampaign() {
-    if (Object.keys(this.search).length) {
+    if (Object.keys(this.search).length || this.queryParams.gclid || this.queryParams.fbclid) {
       analytics.identify({
         interaction: 'landing-page-hit',
         utm: this.queryParams,
@@ -137,6 +137,11 @@ class Granola {
 
   static debugOff() {
     localStorage.removeItem(DEBUG_SRC);
+  }
+
+  static match(regex) {
+    const path = document.location.pathname;
+    return (path.match(regex) || {}).input;
   }
 }
 

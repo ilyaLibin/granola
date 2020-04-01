@@ -5,6 +5,7 @@
     case (path.match(/review/) || {}).input:
       var formParams = JSON.parse(localStorage.getItem('attr_user_traits') || '{}');
       if (!!formParams.email) {
+        formParams.interaction = 'order-review'
         var params = Object.assign({}, formParams, granola.attributes());
         analytics.identify(params);
       }
