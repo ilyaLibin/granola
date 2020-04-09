@@ -20,7 +20,7 @@ class Granola {
   }
 
   initCampaign() {
-    if (Object.keys(this.search).length || this.queryParams.gclid || this.queryParams.fbclid) {
+    if (Object.keys(this.search).length || this.queryParams.gclid || this.queryParams.fbaid) {
       analytics.identify({
         interaction: 'landing-page-hit',
         utm: this.queryParams,
