@@ -52,7 +52,7 @@ trim@0.0.1:
   resolved "https://registry.yarnpkg.com/trim/-/trim-0.0.1.tgz#5858547f6b290757ee95cccc666fb50084c460dd"
   integrity sha1-WFhUf2spB1fulczMZm+1AITEYN0=
 
-vent-dom@0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/vent-dom/-/vent-dom-0.0.6.tgz#450ecb67f663366cc37e35cb204ab8b6f62af338"
-  integrity sha512-zomqdpYnUgyLtfERNgDGY69JlN9+Y9CqeOkHairMctg6xN8s3Dly+06exbbtkW8sfQCkq7xQ2DKhFQfjoMepOw==
+vent-dom@0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/vent-dom/-/vent-dom-0.1.2.tgz#4a1a33091c8e6b8711007c2b336c68c5552d4092"
+  integrity sha512-WHbjlsEpDV3q0Ivtyk4SmjlyYZi05q6nE4jWrGVAjlk7OhTL2bLIKESnFweeGpoAXNHPRr7Tzi7dcUBza8u4ig==

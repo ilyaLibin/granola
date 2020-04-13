@@ -1,7 +1,7 @@
 <html>
   
 <body>
-  <script src="./index.js"></script>
+  <script src="./granola.js"></script>
   <script>
      !function () {
         var analytics = window.analytics = window.analytics || []; if (!analytics.initialize) if (analytics.invoked) window.console && console.error && console.error("Segment snippet included twice."); else {
@@ -11,40 +11,67 @@
         window.granola = new Granola();
         analytics.debug();
         analytics.page();
-
-        // check how to add more data to page.
-        // send an actual request and validate how it's seen in elasticsearch.
-        // add indetify to form submission.
-        // connect form submission to Circa on the site.
-        // merge to production all appointment form submission
-
-        // ===============Long run===============
-        // Handle events show/no show - connect it back to facebook and google (somehow).
-        // Create user centric index for each conversion.
-        // Create the cohort graph.
-        // Create alerts and dashboard for google analytics.
-        // Migrate other conversion events to segment in the right way.
-        // Create events highly correlated to conversion graph.
-        // How long does it take to convert?
-        // "Abandoned carts" - started form fill but didn't finished. (track this KPI)
-        // Visualize the funnel for Circa.
       }
     }();
   </script>
-  <a href="#" class="cta">Do this</a>
+  <div class="firstwrapper">
+    <p><a href="#" class="cta1">track</a></p>
+    <p><a href="#" class="cta2" data-experiment="cta2">track with data attributes</a></p>
+    <p><a href="#" class="cta3">track with params</a></p>
+  </div>
+  <div class="secondwrapper">
+    <p><a href="#" class="cta4">track with data attributes and params</a></p>
+  </div>
+  <p><a href="#" class="no-wrapper" data-experiment="32">track with data attributes and params</a></p>
+
+  <form class="form">
+    <input type="text" name="sometext" value="test"/>
+  </form>
+
 </body>
 
 </html>
-
+<script>
+  const targets = {
+      '.cta1': {
+        wrapper: '.firstwrapper',
+        title: 'CTA clicked',
+        eventName: 'click',
+      },
+      '.cta2': {
+        wrapper: '.firstwrapper',
+        title: 'track with data attributes',
+        eventName: 'click',
+      },
+      '.cta3': {
+        wrapper: '.firstwrapper',
+        title: 'track with data attributes',
+        eventName: 'click',
+        params: { category: 'interest' }
+      },
+      '.cta4': {
+        wrapper: '.secondwrapper',
+        title: 'secondwrapper',
+        eventName: 'click',
+        params: { category: 'interest' }
+      },
+      '.no-wrapper': {
+        params: { status: 'not-confirmed' },
+        method: 'identify',
+        formSelector: 'form'
+      }
+    }
+    granola.setListeners(targets)
+</script>
 <!-- granola.trackForm(document.querySelector('.lp-pom-form > form'), 'appointment scheduled') -->
 <!-- a[href="/scheduler/ -->
 
 <!-- circa specific -->
-<script type="text/javascript">
+<!-- <script type="text/javascript">
   var APPOINTMENT_SCHEDULED = 'Appointment Scheduled';
   var INITIATED_CONVERSION = 'Initiated Conversion';
   granola.trackForm(document.querySelector('.lp-pom-form > form'), APPOINTMENT_SCHEDULED, { status: 'not_confirmed' });
   granola.trackForm(document.querySelector('#appointment-form'), APPOINTMENT_SCHEDULED, { status: 'not_confirmed' });
   granola.trackLinkBySelector('a[href="/scheduler/"', INITIATED_CONVERSION, { category: 'interest' });
   granola.trackLinkBySelector('.cta', INITIATED_CONVERSION, { category: 'interest' });
-</script>
+</script> -->
