@@ -1,6 +1,41 @@
 require('vent-dom/lib/vent.min.es5.js');
 const DEBUG_SRC = 'granola-debug-script';
+const LOCAL_CONFIG_FLAG = 'granola-use-local-config';
+const VERBOSE = 'granola-verbose-logs';
+
+const Logger = () => {
+  const isVerbose = !!localStorage.getItem(VERBOSE);
+  function log(message, arguments = {}) {
+    isVerbose && console.log(`Granola: ${message}`, arguments);
+  }
+
+  function error(message, arguments = {}) {
+    isVerbose && console.error(`Granola: ${message}`, arguments);
+  }
+
+  return { log, error };
+}
+
+const logger = Logger();
+
 function Granola() {
+  function init(customer, triggers = []) {
+    if (triggers && triggers.length) {
+      trackEvents(triggers)
+    }
+
+    loadConfig(customer, (response) => {
+      let triggers;
+      try {
+        triggers = JSON.parse(response);
+      } catch (e) {
+        return console.error('JSON file is not valid')
+      }
+
+      trackEvents(triggers);
+    });
+  }
+
   function formToJSON($form) {
     if (!$form) return {};
     const { elements } = $form;
@@ -20,23 +55,44 @@ function Granola() {
   function debugOff() {
     localStorage.removeItem(DEBUG_SRC);
   }
+
+  function verbose() {
+    localStorage.setItem(VERBOSE, 'on');
+  }
+
+  function useLocalConfig() {
+    localStorage.setItem(LOCAL_CONFIG_FLAG, 'yes');
+    window.location.reload();
+  }
+
+  function useProductionConfig() {
+    localStorage.removeItem(LOCAL_CONFIG_FLAG);
+    window.location.reload();
+  }
   
-  function setListeners(targets) {
+  function trackEvents(targets) {
     const wrappers = {};
     Object.keys(targets).forEach(selector => {
       const params = targets[selector];
-      const eventName = params.eventName || 'click';
-      if (params.wrapper) {
-        wrappers[params.wrapper] = wrappers[params.wrapper] || vent(params.wrapper);
-        wrappers[params.wrapper].on(eventName, selector,
+      const {
+        wrapper,
+        eventName = 'click',
+        trackOnce = false,
+      } = params;
+      const on = trackOnce ? 'once' : 'on';
+
+      if (wrapper) {
+        wrappers[wrapper] = wrappers[wrapper] || vent(wrapper);
+        wrappers[wrapper][on](eventName, selector,
           (e) => handlerFactory(e, selector, params));
-  
+        logger.log(`set listener for (${wrapper}).on(${eventName})`, params)
       } else {
-        vent(selector).on(eventName, (e) => handlerFactory(e, selector, params));
+        vent(selector)[on](eventName, (e) => handlerFactory(e, selector, params));
+        logger.log(`set listener for (${wrapper}).on(${eventName})`, params)
       }
     })
   }
-  
+
   function handlerFactory(event, selector, {
     params,
     formSelector = null,
@@ -70,8 +126,35 @@ function Granola() {
     }
   }
 
+  function xhrSuccess() {
+    this.callback.call(this, this.response);
+  }
+
+  function xhrError() {
+    console.error(this.statusText);
+  }
+
+  function loadConfig(customer, callback) {
+    const isLocalConfig = !!localStorage.getItem('granola-use-local-config');
+    const baseURL = isLocalConfig ? `http://localhost:5813` : `https://analytics.exacti.us`;
+    const url = baseURL + `/configs/${customer}.json`;
+
+    var xhr = new XMLHttpRequest();
+    xhr.callback = callback;
+    xhr.onload = xhrSuccess;
+    xhr.onerror = xhrError;
+    xhr.open("GET", url, true);
+    xhr.send(null);
+  }
+
   return {
-    setListeners
+    init,
+    trackEvents,
+    debugOn,
+    debugOff,
+    useLocalConfig,
+    useProductionConfig,
+    verbose
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "granola",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "main": "index.js",
   "repository": "git@github.com:ilyaLibin/granola.git",
   "author": "Ilya Libin <libin.ilya@gmail.com>",
@@ -11,7 +11,7 @@
     "vent-dom": "0.1.2"
   },
   "scripts": {
-    "build": "parcel build index.js -o granola",
+    "build": "parcel build granola.js -o granola",
     "start": "parcel index.html"
   }
 }
