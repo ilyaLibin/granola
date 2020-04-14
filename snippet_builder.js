@@ -1,4 +1,5 @@
 (function() {
+  var granolaScript = localStorage.getItem('granola-debug-script') || 'https://analytics.exacti.us/granola.2.0.js'
   var Exactius = function () {}
   Exactius.prototype = {
     require: function (scripts, callback) {
@@ -28,7 +29,7 @@
   }
 
   new Exactius().require([
-    'https://analytics.exacti.us/granola.1-0-12.js'
+    granolaScript
   ],
     function () {
       window.granola = new Granola();
