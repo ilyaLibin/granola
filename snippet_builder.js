@@ -28,7 +28,7 @@
   }
 
   new Exactius().require([
-    'https://analytics.exacti.us/granola.1-0-11.js'
+    'https://analytics.exacti.us/granola.1-0-12.js'
   ],
     function () {
       window.granola = new Granola();
