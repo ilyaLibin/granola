@@ -1,4 +1,5 @@
 require('vent-dom/lib/vent.min.es5.js');
+const debounce = require('./src/debounce');
 const DEBUG_SRC = 'granola-debug-script';
 const LOCAL_CONFIG_FLAG = 'granola-use-local-config';
 const VERBOSE = 'granola-verbose-logs';
@@ -81,14 +82,21 @@ function Granola() {
       } = params;
       const on = trackOnce ? 'once' : 'on';
 
+      // track element impression events
+      if (eventName === 'impression') {
+        vent(wrapper || document)
+          .on('scroll', debounce((e) => checkElementVisibility(e, selector, params), 250))
+      }
+
+      // track regular events
       if (wrapper) {
         wrappers[wrapper] = wrappers[wrapper] || vent(wrapper);
         wrappers[wrapper][on](eventName, selector,
           (e) => handlerFactory(e, selector, params));
-        logger.log(`set listener for (${wrapper}).on(${eventName})`, params)
+        logger.log(`set listener for (${wrapper}).on(${eventName}, ${selector})`, params)
       } else {
         vent(selector)[on](eventName, (e) => handlerFactory(e, selector, params));
-        logger.log(`set listener for (${wrapper}).on(${eventName})`, params)
+        logger.log(`set listener for (${selector}).on(${eventName})`, params)
       }
     })
   }
@@ -126,6 +134,24 @@ function Granola() {
     }
   }
 
+  //impressions
+  function isElementInView(element) {
+    const elementBoundingBox = element.getBoundingClientRect();
+    const elementTopY = elementBoundingBox.top;
+    const elementBottomY = elementBoundingBox.top + elementBoundingBox.height;
+    return elementTopY >= 0 && elementBottomY <= Math.min(document.documentElement.clientHeight, window.innerHeight || 0);
+  }
+
+  function checkElementVisibility(e, selector, params) {
+    const elements = document.querySelectorAll(selector);
+    for (let i = 0; i < elements.length; i++) {
+      if (isElementInView(elements[i])) {
+        vent(elements[i]).trigger('impression');
+      }
+    }
+  }
+
+  // loading
   function xhrSuccess() {
     this.callback.call(this, this.response);
   }
@@ -172,6 +198,13 @@ const targets = {
   '.targetTwo': {
     params: { status: 'not-confirmed' },
     method: 'identify'
+  },
+  {
+    ".somebox": {
+      "title": "Order page impression",
+      "params": { "status": "not-confirmed" },
+      "eventName": "impression"
+    }
   }
 }
 */
