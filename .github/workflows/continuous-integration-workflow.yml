@@ -18,7 +18,7 @@ jobs:
           node-version: 10.x
       - run: npm install
       - name: Build files
-        run: npx parcel build index.js -o granola.$(node -e "(function () { console.log(require('./package.json').version.split('.').join('-')) })()").js
+        run: npx parcel build granola.js -o granola.$(node -e "(function () { console.log(require('./package.json').version.split('.').join('-')) })()").js
       - name: S3 Sync
         uses: jakejarvis/s3-sync-action@master
         with:
