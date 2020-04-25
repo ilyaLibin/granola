@@ -70,7 +70,7 @@ function Granola() {
     localStorage.removeItem(LOCAL_CONFIG_FLAG);
     window.location.reload();
   }
-  
+
   function trackEvents(targets) {
     const wrappers = {};
     Object.keys(targets).forEach(selector => {
