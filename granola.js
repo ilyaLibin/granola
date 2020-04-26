@@ -1,5 +1,7 @@
 require('vent-dom/lib/vent.min.es5.js');
 const debounce = require('./src/debounce');
+const ScriptLoader = require('./src/ScriptLoader');
+const { FB_DEFAULT_EVENTS } = require('./src/constants');
 const DEBUG_SRC = 'granola-debug-script';
 const LOCAL_CONFIG_FLAG = 'granola-use-local-config';
 const VERBOSE = 'granola-verbose-logs';
@@ -25,16 +27,16 @@ function Granola() {
       trackEvents(triggers)
     }
 
-    loadConfig(customer, (response) => {
-      let triggers;
-      try {
-        triggers = JSON.parse(response);
-      } catch (e) {
-        return console.error('JSON file is not valid')
-      }
+    loadSettings(customer, () => {
+      if (!window.granolaSettings) return logger.error(`failed to load granolaSettings`);
 
-      trackEvents(triggers);
-    });
+      const {
+        targets,
+        settings
+      } = granolaSettings;
+
+      trackEvents(targets, settings)
+    })
   }
 
   function formToJSON($form) {
@@ -71,19 +73,19 @@ function Granola() {
     window.location.reload();
   }
 
-  function trackEvents(targets) {
+  function trackEvents(targets, settings) {
     const wrappers = {};
     Object.keys(targets).forEach(selector => {
       const params = targets[selector];
       const {
         wrapper,
-        eventName = 'click',
+        listenTo = 'click',
         trackOnce = false,
       } = params;
       const on = trackOnce ? 'once' : 'on';
 
       // track element impression events
-      if (eventName === 'impression') {
+      if (listenTo === 'impression') {
         vent(wrapper || document)
           .on('scroll', debounce((e) => checkElementVisibility(e, selector, params), 250))
       }
@@ -91,32 +93,38 @@ function Granola() {
       // track regular events
       if (wrapper) {
         wrappers[wrapper] = wrappers[wrapper] || vent(wrapper);
-        wrappers[wrapper][on](eventName, selector,
-          (e) => handlerFactory(e, selector, params));
-        logger.log(`set listener for (${wrapper}).on(${eventName}, ${selector})`, params)
+        wrappers[wrapper][on](listenTo, selector,
+          (e) => handlerFactory(e, selector, params, settings));
+        logger.log(`set listener for (${wrapper}).on(${listenTo}, ${selector})`, params)
       } else {
-        vent(selector)[on](eventName, (e) => handlerFactory(e, selector, params));
-        logger.log(`set listener for (${selector}).on(${eventName})`, params)
+        vent(selector)[on](listenTo, (e) => handlerFactory(e, selector, params, settings));
+        logger.log(`set listener for (${selector}).on(${listenTo})`, params)
       }
     })
   }
 
-  function handlerFactory(event, selector, {
-    params,
-    formSelector = null,
-    method = 'track',
-    title
-  }) {
+  function handlerFactory(
+    event,
+    selector,
+    { params, formSelector = null, method = 'track', eventName, integrations },
+    settings
+  ) {
+    
+    const { eventsDefaults, integrations: defaultIntegrations } = settings;
+    const defaults = eventsDefaults[selector] || {};
+
     const $target = document.querySelector(selector);
     const isForm = formSelector && document.querySelector(formSelector);
     let allParams = params;
     if (isForm) {
       allParams = {
+        ...defaults,
         ...params,
         ...formToJSON(document.querySelector(formSelector))
       }
     } else if ($target) {
       allParams = {
+        ...defaults,
         ...params,
         ...$target.dataset,
         title: $target.innerText
@@ -125,13 +133,47 @@ function Granola() {
 
     switch(method) {
       case 'identify':
-        analytics && analytics.identify(allParams);
+        window.analytics && analytics.identify(allParams);
         break;
       case 'track':
       default:
-        analytics && analytics.track(title, allParams);
+        window.analytics && analytics.track(eventName, allParams);
+
+        if (shouldPropagateTo('fb', integrations, defaultIntegrations)) {
+          const fbOverrides = integrations['fb'] || {};
+          const fbParams = { ...allParams, ...fbOverrides };
+          fbReportEvent(fbParams);
+        }
+
+        if (shouldPropagateTo('hj', integrations, defaultIntegrations)) {
+          const hjOverrides = integrations['fb'] || {};
+          const hjParams = { ...allParams, ...hjOverrides };
+        }
         break;
     }
+  }
+
+  function shouldPropagateTo(vendor, specific, global) {
+    if (typeof specific[vendor] === 'boolean' || typeof specific[vendor] === 'object') {
+      return !!specific[vendor];
+    }
+
+    return !!global[vendor];
+  }
+
+  function fbReportEvent(params = {}) {
+    if (!window.fbq) return logger.error('fbq not defined');
+    const { eventName } = params;
+    const trackVerb = FB_DEFAULT_EVENTS.includes(eventName) ? 'track' : 'trackCustom';
+    const {
+      category: content_category,
+      label: content_name,
+      ...others
+    } = params;
+
+    const fbParams = { ...others, content_category, content_name };
+    logger.log('fb pixel', { trackVerb, ...fbParams });
+    fbq(trackVerb, eventName, fbParams);
   }
 
   //impressions
@@ -151,26 +193,12 @@ function Granola() {
     }
   }
 
-  // loading
-  function xhrSuccess() {
-    this.callback.call(this, this.response);
-  }
-
-  function xhrError() {
-    console.error(this.statusText);
-  }
-
-  function loadConfig(customer, callback) {
+  function loadSettings(customer, callback) {
     const isLocalConfig = !!localStorage.getItem('granola-use-local-config');
     const baseURL = isLocalConfig ? `http://localhost:5813` : `https://analytics.exacti.us`;
-    const url = baseURL + `/configs/${customer}.json`;
-
-    var xhr = new XMLHttpRequest();
-    xhr.callback = callback;
-    xhr.onload = xhrSuccess;
-    xhr.onerror = xhrError;
-    xhr.open("GET", url, true);
-    xhr.send(null);
+    const url = baseURL + `/configs/${customer}.js`;
+    const loader = new ScriptLoader();
+    loader.require([url], callback)
   }
 
   return {
@@ -186,25 +214,3 @@ function Granola() {
 
 window.Granola = Granola;
 window.granola = Granola();
-
-/*
-const targets = {
-  'li': {
-    wrapper: 'ul.list',
-    title: 'CTA clicked',
-    params: { status: 'not-confirmed'},
-    eventName: 'click',
-  },
-  '.targetTwo': {
-    params: { status: 'not-confirmed' },
-    method: 'identify'
-  },
-  {
-    ".somebox": {
-      "title": "Order page impression",
-      "params": { "status": "not-confirmed" },
-      "eventName": "impression"
-    }
-  }
-}
-*/

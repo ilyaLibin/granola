@@ -11,7 +11,6 @@ class ScriptLoader {
 
   loaded(evt) {
     this.loadCount++;
-
     if (this.loadCount == this.totalRequired && typeof this.callback == 'function') this.callback.call();
   }
 

@@ -1,0 +1,1 @@
+module.exports.FB_DEFAULT_EVENTS = ['AddPaymentInfo', 'AddToCart', 'AddToWishlist', 'CompleteRegistration', 'Contact', 'CustomizeProduct', 'Donate', 'InitiateCheckout', 'Lead', 'Purchase', 'PageView', 'Schedule', 'Search', 'StartTrial', 'SubmitApplication', 'Subscribe', 'ViewContent'];
