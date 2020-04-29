@@ -18,10 +18,15 @@ const Logger = () => {
 
   return { log, error };
 }
-
 const logger = Logger();
 
 function Granola() {
+  const integrationHandlers = {
+    'fb': fbReportEvent
+  }
+
+  const directives = {}
+
   function init(customer, triggers = []) {
     if (triggers && triggers.length) {
       trackEvents(triggers)
@@ -131,6 +136,16 @@ function Granola() {
       }
     }
 
+    allParams = handleDirectives({
+      $target, selector, eventName, currentPayload: allParams
+    });
+
+    // dataLayer propagation
+    const eventNamePrefixed = `${settings.eventPrefix}-${eventName}`;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({event: eventNamePrefixed, ...allParams})
+
+    // elastic and third-party propagation.
     switch(method) {
       case 'identify':
         window.analytics && analytics.identify(allParams);
@@ -139,16 +154,19 @@ function Granola() {
       default:
         window.analytics && analytics.track(eventName, allParams);
 
-        if (shouldPropagateTo('fb', integrations, defaultIntegrations)) {
-          const fbOverrides = integrations['fb'] || {};
-          const fbParams = { ...allParams, ...fbOverrides };
-          fbReportEvent(fbParams);
-        }
+        // third-party propagation
+        Object.keys(defaultIntegrations).forEach(integrationKey => {
+          if (shouldPropagateTo(integrationKey, integrations, defaultIntegrations)) {
+            const overrides = integrations[integrationKey] || {};
+            const params = { ...allParams, ...overrides };
+            integrationHandlers[integrationKey] && integrationHandlers[integrationKey](params);
 
-        if (shouldPropagateTo('hj', integrations, defaultIntegrations)) {
-          const hjOverrides = integrations['fb'] || {};
-          const hjParams = { ...allParams, ...hjOverrides };
-        }
+            if (!integrationHandlers[integrationKey]) {
+              return logger.error(`handler for ${integrationKey} integration is not defined`);
+            }
+          }
+        });
+
         break;
     }
   }
@@ -201,6 +219,26 @@ function Granola() {
     loader.require([url], callback)
   }
 
+  function registerDirective(directiveKey, handler) {
+    directives[directiveKey] = handler;
+  }
+
+  function registerIntegration(integrationKey, handler) {
+    integrationHandlers[integrationKey] = handler;
+  }
+
+  function handleDirectives({ $target, eventName, currentPayload, selector }) {
+    Object.keys(currentPayload).forEach(paramKey => {
+      const directiveParams = currentPayload[paramKey];
+      if (typeof directiveParams === 'object' && directiveParams.type) {
+        if (!directives[directiveParams.type]) return logger.error(`directive of type ${directiveParams.type} does not exist`);
+
+        currentPayload[paramKey] = directives[directiveParams.type]({ $target, selector, eventName, currentPayload, directiveParams });
+      }
+    })
+    return currentPayload;
+  }
+
   return {
     init,
     trackEvents,
@@ -208,9 +246,47 @@ function Granola() {
     debugOff,
     useLocalConfig,
     useProductionConfig,
-    verbose
+    verbose,
+    registerDirective,
+    registerIntegration
   }
 }
 
 window.Granola = Granola;
-window.granola = Granola();
+window.granola = new Granola();
+
+// full list of available params:
+// { $target, selector, eventName, currentPayload, directiveParams }
+window.granola.registerDirective('echo', ({ directiveParams }) => {
+  return directiveParams.value;
+})
+
+window.granola.registerDirective('closest', ({ $target, selector, eventName, currentPayload, directiveParams }) => {
+  const { targetSelector, parentSelector, extractor } = directiveParams;
+  if (!targetSelector) throw Error('targeSelector is not defined');
+  if (!parentSelector) throw Error('parentSelector is not defined');
+  if (!extractor) throw Error('extractor is not defined');
+
+  const $parent = $target.closest(parentSelector)
+  if (!$parent) throw Error(`closest parent with selector ${parentSelector} can't be found`);
+
+  const $targetOfExtractor = $parent.querySelector(targetSelector);
+  if (!$targetOfExtractor) throw Error(`closest targetOfExtractor with selector ${targetSelector} can't be found`);
+
+  if (typeof extractor === 'string') {
+    switch(extractor) {
+      case '$priceParser':
+        const string = $targetOfExtractor.innerText.replace(/[^0-9.-]+/g, '');
+        return parseInt(string, 10);
+
+      case 'text':
+        return $targetOfExtractor.innerText;
+
+      default:
+        throw Error(`Built in extractor with name ${extractor} is not defined`);
+    }
+  } else if (typeof extractor === 'function') {
+    return extractor({ $target, eventName, currentPayload, directiveParams })
+  }
+})
+
