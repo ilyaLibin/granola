@@ -1,3 +1,4 @@
+import Cookies from 'js-cookie';
 require('vent-dom/lib/vent.min.es5.js');
 const debounce = require('./src/debounce');
 const ScriptLoader = require('./src/ScriptLoader');
@@ -112,7 +113,6 @@ function Granola() {
     const { params, formSelector = null, method = 'track', eventName, integrations = {}, callback } = eventConfig;
     const { eventsDefaults, integrations: defaultIntegrations } = settings;
     const defaults = eventsDefaults[eventName] || {};
-    debugger
     const $target = document.querySelector(selector);
     const isForm = formSelector && document.querySelector(formSelector);
     let allParams = params;
@@ -248,14 +248,21 @@ function Granola() {
     registerIntegration
   }
 }
-
+window.Cookies = Cookies;
 window.Granola = Granola;
 window.granola = new Granola();
 
+
+window.granola.registerIntegration('hj', ({ eventName, label }) => {
+  if(!window.hj) return logger.log('Hotjar integration is not set');
+  hj('tagRecording', [eventName + ':' + (label || '')]);
+})
+
 // full list of available params:
 // { $target, selector, eventName, currentPayload, directiveParams }
-window.granola.registerDirective('echo', ({ directiveParams }) => {
-  return directiveParams.value;
+window.granola.registerDirective('cookie', ({ directiveParams }) => {
+  const { key, value } = directiveParams;
+  return Cookies.set(key, value);
 })
 
 window.granola.registerDirective('closest', ({ $target, selector, eventName, currentPayload, directiveParams }) => {
