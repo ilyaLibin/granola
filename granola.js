@@ -111,19 +111,24 @@ function Granola() {
 
   function handlerFactory(event, selector, eventConfig, settings) {
     const { params, formSelector = null, method = 'track', eventName, integrations = {}, callback } = eventConfig;
-    const { eventsDefaults, integrations: defaultIntegrations } = settings;
+    const { eventsDefaults, integrationsGlobal, integrationsByEvents } = settings;
+    const integrationsGlobalToEventsGroup = integrationsByEvents[eventName] || {};
+    const defaultIntegrations = Object.assign({}, integrationsGlobal, integrationsGlobalToEventsGroup || {});
+
     const defaults = eventsDefaults[eventName] || {};
     const $target = document.querySelector(selector);
     const isForm = formSelector && document.querySelector(formSelector);
     let allParams = params;
     if (isForm) {
       allParams = {
+        eventName,
         ...defaults,
         ...params,
         ...formToJSON(document.querySelector(formSelector))
       }
     } else if ($target) {
       allParams = {
+        eventName,
         ...defaults,
         ...params,
         ...$target.dataset,
@@ -152,7 +157,10 @@ function Granola() {
         Object.keys(defaultIntegrations).forEach(integrationKey => {
           if (shouldPropagateTo(integrationKey, integrations, defaultIntegrations)) {
             const overrides = integrations[integrationKey] || {};
-            const params = { ...allParams, ...overrides };
+            const defaultIntParams = defaultIntegrations[integrationKey] || {};
+
+            const params = { ...allParams, ...defaultIntParams, ...overrides };
+
             integrationHandlers[integrationKey] && integrationHandlers[integrationKey](params);
 
             if (!integrationHandlers[integrationKey]) {
@@ -227,7 +235,10 @@ function Granola() {
   function handleDirectives({ $target, eventName, currentPayload, selector }) {
     Object.keys(currentPayload).forEach(paramKey => {
       const directiveParams = currentPayload[paramKey];
-      if (typeof directiveParams === 'object' && directiveParams.type) {
+      if (typeof directiveParams === 'function') {
+        currentPayload[paramKey] = directiveParams({ $target, eventName, currentPayload, selector })
+
+      } else if (typeof directiveParams === 'object' && directiveParams.type) {
         if (!directives[directiveParams.type]) return logger.error(`directive of type ${directiveParams.type} does not exist`);
 
         currentPayload[paramKey] = directives[directiveParams.type]({ $target, selector, eventName, currentPayload, directiveParams });
