@@ -111,12 +111,12 @@ function Granola() {
 
   function handlerFactory(event, selector, eventConfig, settings) {
     const { params, formSelector = null, method = 'track', eventName, integrations = {}, callback } = eventConfig;
-    const { eventsDefaults, integrationsGlobal, integrationsByEvents } = settings;
+    const { eventsDefaults, integrationsGlobal = {}, integrationsByEvents = {} } = settings;
     const integrationsGlobalToEventsGroup = integrationsByEvents[eventName] || {};
     const defaultIntegrations = Object.assign({}, integrationsGlobal, integrationsGlobalToEventsGroup || {});
 
     const defaults = eventsDefaults[eventName] || {};
-    const $target = document.querySelector(selector);
+    const $target = event.target;
     const isForm = formSelector && document.querySelector(formSelector);
     let allParams = params;
     if (isForm) {
@@ -141,7 +141,7 @@ function Granola() {
     });
 
     // dataLayer propagation
-    const eventNamePrefixed = `${settings.eventPrefix}-${eventName}`;
+    const eventNamePrefixed = `${settings.eventPrefix}_${eventName}`;
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({event: eventNamePrefixed, ...allParams})
 
