@@ -108,16 +108,11 @@ function Granola() {
     })
   }
 
-  function handlerFactory(
-    event,
-    selector,
-    { params, formSelector = null, method = 'track', eventName, integrations },
-    settings
-  ) {
-    
+  function handlerFactory(event, selector, eventConfig, settings) {
+    const { params, formSelector = null, method = 'track', eventName, integrations = {}, callback } = eventConfig;
     const { eventsDefaults, integrations: defaultIntegrations } = settings;
-    const defaults = eventsDefaults[selector] || {};
-
+    const defaults = eventsDefaults[eventName] || {};
+    debugger
     const $target = document.querySelector(selector);
     const isForm = formSelector && document.querySelector(formSelector);
     let allParams = params;
@@ -153,7 +148,6 @@ function Granola() {
       case 'track':
       default:
         window.analytics && analytics.track(eventName, allParams);
-
         // third-party propagation
         Object.keys(defaultIntegrations).forEach(integrationKey => {
           if (shouldPropagateTo(integrationKey, integrations, defaultIntegrations)) {
@@ -169,6 +163,9 @@ function Granola() {
 
         break;
     }
+
+
+    (typeof callback === 'function') && callback({ $target, selector, eventName, currentPayload: allParams })
   }
 
   function shouldPropagateTo(vendor, specific, global) {
